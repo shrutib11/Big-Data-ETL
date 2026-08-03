@@ -1,0 +1,8 @@
+filebeat.inputs:
+  - type: log
+    paths:
+      - /var/log/nifi/nifi-app.log
+    include_lines: ['PIPELINE_COUNT', 'ERROR', 'WARN']
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
