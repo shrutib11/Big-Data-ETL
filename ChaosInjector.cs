@@ -9,16 +9,16 @@ internal sealed class ChaosInjector
 
     private static string[] BuildBadChars()
     {
-        return new[]
-        {
+        return
+        [
             ((char)7).ToString(),                       // bell - non-printable ASCII
             ((char)31).ToString(),                      // unit separator - non-printable ASCII
             "\"",                                        // unescaped quote
             ((char)233).ToString(),                      // e with acute accent - multi-byte UTF-8
             ((char)241).ToString(),                      // n with tilde - multi-byte UTF-8
-            new string(new[] { (char)0xD83D, (char)0xDE00 }), // grinning face emoji - surrogate pair
-            new string(new[] { (char)0xD83D, (char)0xDD25 })  // fire emoji - surrogate pair
-        };
+            new string([(char)0xD83D, (char)0xDE00]), // grinning face emoji - surrogate pair
+            new string([(char)0xD83D, (char)0xDD25])  // fire emoji - surrogate pair
+        ];
     }
 
     private static readonly string[] DateFormats = { "yyyy-MM-dd", "MM/dd/yyyy", "dd-MMM-yyyy", "EPOCH" };

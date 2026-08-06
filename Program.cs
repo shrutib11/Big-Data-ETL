@@ -79,7 +79,7 @@ static string BuildLine(int index, Faker faker, ChaosInjector chaos, Random rnd,
     ).ToArray();
     string tagsCell = chaos.BuildTagsCell(tags);
 
-    return string.Join(",", customerId.ToString(CultureInfo.InvariantCulture), firstName, lastName, email, signupDateText, amountText, deviceInfoCell, tagsCell);
+    return string.Join(",", customerId.ToString(CultureInfo.InvariantCulture), firstName, lastName, email, signupDateText, $"\"{amountText}\"", deviceInfoCell, tagsCell);
 }
 
 static int GetEnvInt(string name, int fallback) =>

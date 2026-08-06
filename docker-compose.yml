@@ -117,7 +117,7 @@
       container_name: elasticsearch
       environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       ports:
       - "9200:9200"
@@ -131,6 +131,8 @@
       - "5601:5601"
       environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       depends_on:
       - elasticsearch
   
