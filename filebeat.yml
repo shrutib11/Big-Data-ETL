@@ -6,23 +6,27 @@ filebeat.inputs:
     fields:
       log_type: system
     fields_under_root: true
-
+ 
   - type: log
     paths:
       - /var/log/nifi/nifi-user.log
     fields:
       log_type: user
     fields_under_root: true
-
+ 
   - type: log
     paths:
       - /var/log/nifi/nifi-canvas.log
     fields:
       log_type: canvas
     fields_under_root: true
-
+          
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
   index: "nifi-%{[log_type]}-%{+yyyy.MM.dd}"
   username: "elastic"
   password: "elasticsearch123"
+ 
+setup.ilm.enabled: false
+setup.template.name: "nifi"
+setup.template.pattern: "nifi-*"
