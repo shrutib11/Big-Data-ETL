@@ -54,6 +54,7 @@
         cp /opt/nifi/custom-conf/keystore.jks /opt/nifi/nifi-current/conf/keystore.jks;
         cp /opt/nifi/custom-conf/truststore.jks /opt/nifi/nifi-current/conf/truststore.jks;
         cp /opt/nifi/custom-conf/flow.json.gz /opt/nifi/nifi-current/conf/flow.json.gz;
+        cp /opt/nifi/custom-conf/logback.xml /opt/nifi/nifi-current/conf/logback.xml;
         sed -i "s|OIDC_DISCOVERY_URL|https://login.microsoftonline.com/$$AZURE_TENANT_ID/v2.0/.well-known/openid-configuration|g" /opt/nifi/nifi-current/conf/nifi.properties;
         sed -i "s|OIDC_CLIENT_ID|$$AZURE_CLIENT_ID|g" /opt/nifi/nifi-current/conf/nifi.properties;
         sed -i "s|OIDC_CLIENT_SECRET|$$OIDC_CLIENT_SECRET|g" /opt/nifi/nifi-current/conf/nifi.properties;
@@ -73,6 +74,7 @@
         - ./truststore.jks:/opt/nifi/custom-conf/truststore.jks
         - nifi-logs:/opt/nifi/nifi-current/logs
         - ./flow.json.gz:/opt/nifi/custom-conf/flow.json.gz
+        - ./logback.xml:/opt/nifi/custom-conf/logback.xml
         
     minio:
       image: minio/minio:latest
