@@ -169,29 +169,19 @@
         - pipeline-net
 
     elastic-init:
+      <<: *default-logging
       image: curlimages/curl:latest
       depends_on:
-        - elasticsearch
+        elasticsearch:
+          condition: service_healthy
       environment:
         ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
         ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
-      entrypoint: >
-        /bin/sh -c '
-        echo "Waiting for Elasticsearch...";
-        until curl -s -u elastic:$$ELASTIC_PASSWORD http://elasticsearch:9200 >/dev/null; do
-          sleep 2;
-        done;
-
-        echo "Setting kibana_system password...";
-
-        curl -X POST \
-          -u elastic:$$ELASTIC_PASSWORD \
-          -H "Content-Type: application/json" \
-          http://elasticsearch:9200/_security/user/kibana_system/_password \
-          -d "{\"password\":\"$$ELASTICSEARCH_PASSWORD\"}";
-
-        echo "Elasticsearch initialization complete!";
-        '
+      volumes:
+        - ./scripts/elastic-init.sh:/usr/local/bin/elastic-init.sh:ro
+      entrypoint: /bin/sh /usr/local/bin/elastic-init.sh
+      networks:
+        - pipeline-net
     
     kibana:
       <<: *default-logging
@@ -205,12 +195,14 @@
         - ELASTICSEARCH_USERNAME=kibana_system
         - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       depends_on:
-        - elasticsearch
-        - elastic-init
+        elasticsearch:
+          condition: service_healthy
+        elastic-init:
+          condition: service_completed_successfully
       networks:
         - pipeline-net
       
-
+  
     filebeat:
       <<: *default-logging
       image: docker.elastic.co/beats/filebeat:8.15.0
