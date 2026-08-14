@@ -54,6 +54,7 @@
         cp /opt/nifi/custom-conf/keystore.jks /opt/nifi/nifi-current/conf/keystore.jks;
         cp /opt/nifi/custom-conf/truststore.jks /opt/nifi/nifi-current/conf/truststore.jks;
         cp /opt/nifi/custom-conf/flow.json.gz /opt/nifi/nifi-current/conf/flow.json.gz;
+        cp /opt/nifi/custom-conf/logback.xml /opt/nifi/nifi-current/conf/logback.xml;
         sed -i "s|OIDC_DISCOVERY_URL|https://login.microsoftonline.com/$$AZURE_TENANT_ID/v2.0/.well-known/openid-configuration|g" /opt/nifi/nifi-current/conf/nifi.properties;
         sed -i "s|OIDC_CLIENT_ID|$$AZURE_CLIENT_ID|g" /opt/nifi/nifi-current/conf/nifi.properties;
         sed -i "s|OIDC_CLIENT_SECRET|$$OIDC_CLIENT_SECRET|g" /opt/nifi/nifi-current/conf/nifi.properties;
@@ -73,6 +74,7 @@
         - ./truststore.jks:/opt/nifi/custom-conf/truststore.jks
         - nifi-logs:/opt/nifi/nifi-current/logs
         - ./flow.json.gz:/opt/nifi/custom-conf/flow.json.gz
+        - ./logback.xml:/opt/nifi/custom-conf/logback.xml
         
     minio:
       image: minio/minio:latest
@@ -146,12 +148,38 @@
       environment:
       - discovery.type=single-node
       - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       ports:
       - "9200:9200"
       volumes:
       - es-data:/usr/share/elasticsearch/data
-  
+
+    elastic-init:
+      image: curlimages/curl:latest
+      depends_on:
+        - elasticsearch
+      environment:
+        ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+        ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+      entrypoint: >
+        /bin/sh -c '
+        echo "Waiting for Elasticsearch...";
+        until curl -s -u elastic:$$ELASTIC_PASSWORD http://elasticsearch:9200 >/dev/null; do
+          sleep 2;
+        done;
+
+        echo "Setting kibana_system password...";
+
+        curl -X POST \
+          -u elastic:$$ELASTIC_PASSWORD \
+          -H "Content-Type: application/json" \
+          http://elasticsearch:9200/_security/user/kibana_system/_password \
+          -d "{\"password\":\"$$ELASTICSEARCH_PASSWORD\"}";
+
+        echo "Elasticsearch initialization complete!";
+        '
+      
     kibana:
       image: docker.elastic.co/kibana/kibana:8.15.0
       container_name: kibana
@@ -163,6 +191,7 @@
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       depends_on:
       - elasticsearch
+      - elastic-init
   
     filebeat:
       image: docker.elastic.co/beats/filebeat:8.15.0
